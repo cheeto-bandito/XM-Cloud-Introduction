@@ -20,7 +20,7 @@ export const Primary: Story = {
     date: 'October 5-6th',
     description:
       'Get ready to experience the ultimate Sitecore conference of the year at SUGCON North America in Minneapolis, Minnesota.',
-    buttonText: 'Register now',
+    buttonText: 'Register before it\'s too late!',
     imageUrl: 'https://picsum.photos/1200/800',
     callToActionLink: '',
   },
