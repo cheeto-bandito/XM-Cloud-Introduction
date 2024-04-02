@@ -1,0 +1,121 @@
+services:
+
+  nodejs:
+    image: ${REGISTRY}${COMPOSE_PROJECT_NAME}-nodejs:${VERSION:-latest}
+    build:
+      context: ./docker/build/nodejs
+      args:
+        PARENT_IMAGE: ${NODEJS_PARENT_IMAGE}
+        NODEJS_VERSION: ${NODEJS_VERSION}
+    deploy:
+      replicas: 0
+
+  sugcon2024eu:
+    image: ${REGISTRY}${COMPOSE_PROJECT_NAME}-sugcon2024eu:${VERSION:-latest}
+    build:
+      context: ./docker/build/sugcon
+      target: ${BUILD_CONFIGURATION}
+      args:
+        PARENT_IMAGE: ${REGISTRY}${COMPOSE_PROJECT_NAME}-nodejs:${VERSION:-latest}
+    volumes:
+      - .\src\Project\Sugcon2024\Sugcon:C:\app
+    environment:
+      SITECORE_API_HOST: "http://cm"
+      NEXTJS_DIST_DIR: ".next-container"
+      PUBLIC_URL: "https://${SUGCON2024_EU_HOST}"
+      JSS_EDITING_SECRET: ${JSS_EDITING_SECRET}
+      SITECORE_API_KEY: "${SITECORE_API_KEY}"
+      FETCH_WITH: "GraphQL"
+      NEXT_PUBLIC_CDP_CLIENT_KEY: ${SUCGON2024_EU_CDP_CLIENT_KEY}
+      NEXT_PUBLIC_CDP_TARGET_URL: ${SUCGON2024_EU_CDP_TARGET_URL}
+      NEXT_PUBLIC_CDP_POINTOFSALE: ${SUCGON2024_EU_CDP_POINTOFSALE}
+      NODE_ENV: ${NODE_ENV}
+    depends_on:
+      - cm
+      - nodejs
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.sugon2024eu-secure.entrypoints=websecure"
+      - "traefik.http.routers.sugon2024eu-secure.rule=Host(`${SUGCON2024_EU_HOST}`)"
+      - "traefik.http.routers.sugon2024eu-secure.tls=true"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/healthz"]
+      interval: 60s
+      timeout: 30s
+
+  # The solution build image is added here so it can be referenced as a build dependency
+  # for the images which use its output. Setting "deploy.replicas: 0" means docker-compose will not
+  # include it in the running environment. See Dockerfile for more details.
+  solution:
+    image: ${REGISTRY}${COMPOSE_PROJECT_NAME}-solution:${VERSION:-latest}
+    build:
+      context: .
+      dockerfile: ./docker/build/solution/Dockerfile
+      args:
+        BUILD_CONFIGURATION: ${BUILD_CONFIGURATION}
+        BUILD_IMAGE: ${SOLUTION_BUILD_IMAGE}
+        BASE_IMAGE: ${SOLUTION_BASE_IMAGE}
+    deploy:
+      replicas: 0
+
+  # Mount the Traefik configuration and certs.
+  traefik:
+    volumes:
+      - ./docker/traefik:C:/etc/traefik
+    depends_on:
+      - cm
+
+  # Mount our SQL data folder and use our custom image with the Headless Services (JSS)
+  # module data added. See Dockerfile for details.
+  mssql:
+    volumes:
+      - type: bind
+        source: .\docker\data\sql
+        target: c:\data
+
+  # Mount our Solr data folder and use our retagged Solr image.
+  # Some modules (like SXA) also require additions to the Solr image.
+  solr:
+    volumes:
+      - type: bind
+        source: .\docker\data\solr
+        target: c:\data
+
+  # Use our custom CM image with added modules and solution code.
+  # Folders are mounted below for code deployment and log output. See Dockerfile for details.
+  # Configure for a mounted license file instead of using SITECORE_LICENSE.
+  cm:
+    image: ${REGISTRY}${COMPOSE_PROJECT_NAME}-xmcloud-cm:${VERSION:-latest}
+    build:
+      context: ./docker/build/cm
+      args:
+        PARENT_IMAGE: ${SITECORE_DOCKER_REGISTRY}sitecore-xmcloud-cm:${SITECORE_VERSION}
+        SOLUTION_IMAGE: ${REGISTRY}${COMPOSE_PROJECT_NAME}-solution:${VERSION:-latest}
+        TOOLS_IMAGE: ${TOOLS_IMAGE}:${SITECORE_VERSION}
+    depends_on:
+      - solution
+    volumes:
+      - ${LOCAL_DEPLOY_PATH}\platform:C:\deploy
+      - ${LOCAL_DATA_PATH}\cm:C:\inetpub\wwwroot\App_Data\logs
+      - ${HOST_LICENSE_FOLDER}:c:\license
+    environment:
+      Sitecore__ExternalCdUrl: "${CM_HOST}"
+      SITECORE_LICENSE_LOCATION: c:\license\license.xml
+      SITECORE_JSS_EDITING_SECRET: ${JSS_EDITING_SECRET}
+      SITECORE_Pages_Client_Host: ${SITECORE_Pages_Client_Host}
+      SITECORE_Pages_CORS_Allowed_Origins: ${SITECORE_Pages_CORS_Allowed_Origins}
+      SITECORE_GraphQL_CORS: ${SITECORE_GRAPHQL_CORS}
+      ## SugconEu Rendering Host
+      SUGCONEU_RENDERING_HOST_ENDPOINT_URI: "${SUGCON_EU_HOST_INTERNAL_URI}/api/editing/render"
+      SUGCONEU_RENDERING_HOST_PUBLIC_URI: "https://${SUGCON_EU_HOST}"
+      ## SugconAnzsugcon/ Rendering Host
+      SUGCONANZ_RENDERING_HOST_ENDPOINT_URI: "${SUGCON_ANZ_HOST_INTERNAL_URI}/api/editing/render"
+      SUGCONANZ_RENDERING_HOST_PUBLIC_URI: "https://${SUGCON_ANZ_HOST}"
+      ## MVP Rendering Host
+      MVP_RENDERING_HOST_PUBLIC_URI: "https://${MVP_RENDERING_HOST}"
+      ## Development Environment Optimizations
+      SITECORE_DEVELOPMENT_PATCHES: DevEnvOn,CustomErrorsOff,DebugOn,DiagnosticsOff,InitMessagesOff
+      Sitecore_AppSettings_exmEnabled:define: "no" # remove to turn on EXM
+      MVP_RENDERING_EDITING_HOST_URI: "http://mvp-rendering/"
+      RENDERING_HOST_INTERNAL_URI: ${SUGCON_EU_HOST_INTERNAL_URI}
+    entrypoint: powershell -Command "& C:/tools/entrypoints/iis/XmCloudDevelopment.ps1"
