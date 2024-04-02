@@ -1,6 +1,7 @@
 import React from 'react';
-import { Box, Link } from '@chakra-ui/react';
+import { Box, Button, Link } from '@chakra-ui/react';
 import { LinkField, Link as JssLink } from '@sitecore-jss/sitecore-jss-nextjs';
+import { responsiveButtonSizeConfig } from 'template/LayoutConstants';
 
 // Define the type of props that Link will accept
 interface Fields {
@@ -14,12 +15,30 @@ export type LinkProps = {
 };
 
 export const Default = (props: LinkProps): JSX.Element => {
+  const id = props.params.RenderingIdentifier;
+
   return (
     <Box>
       <Link
         as={JssLink}
         field={props.fields.Link}
         isExternal={props.fields?.Link?.value?.target == '_blank'}
+        id={id ? id : undefined}
+      />
+    </Box>
+  );
+};
+
+export const CTAButton = (props: LinkProps): JSX.Element => {
+  const id = props.params.RenderingIdentifier;
+
+  return (
+    <Box>
+      <Button 
+        as={JssLink} 
+        field={props.fields.Link} 
+        size={responsiveButtonSizeConfig}
+        id={id ? id : undefined}
       />
     </Box>
   );

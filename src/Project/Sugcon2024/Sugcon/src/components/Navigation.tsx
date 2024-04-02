@@ -25,8 +25,7 @@ import { ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
 import {
   HeaderHeights,
   PaddingX,
-  PaddingY,
-  responsiveButtonSizeConfig,
+  PaddingY
 } from 'template/LayoutConstants';
 
 export interface Fields {
@@ -174,11 +173,6 @@ const ResponsiveNavigation = ({
               </ListItem>
             );
           })}
-        <ListItem>
-          <Button as={Link} href="/register" size={responsiveButtonSizeConfig}>
-            Register now
-          </Button>
-        </ListItem>
       </UnorderedList>
     </Box>
   );
