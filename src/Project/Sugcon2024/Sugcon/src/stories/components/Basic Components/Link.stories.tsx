@@ -12,7 +12,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Default: Story = {
-  name: 'Link',
+  name: 'Default',
   args: {
     params: {
       styles: '',
@@ -20,12 +20,12 @@ export const Default: Story = {
     fields: {
       Link: {
         value: {
-          href: 'mailto:contact@sitecore.com?subject=SUGCON',
-          text: 'Contact Us',
-          linktype: 'mailto',
+          text: 'Register',
+          linktype: 'external',
           style: '',
-          url: 'mailto:contact@sitecore.com?subject=SUGCON',
-          title: '',
+          href: 'https://www.sugcon.events',
+          title: 'Book Your Ticket',
+          target: '_blank'
         },
       },
     },

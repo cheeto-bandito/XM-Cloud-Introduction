@@ -28,18 +28,3 @@ export const Default = (props: LinkProps): JSX.Element => {
     </Box>
   );
 };
-
-export const CTAButton = (props: LinkProps): JSX.Element => {
-  const id = props.params.RenderingIdentifier;
-
-  return (
-    <Box>
-      <Button 
-        as={JssLink} 
-        field={props.fields.Link} 
-        size={responsiveButtonSizeConfig}
-        id={id ? id : undefined}
-      />
-    </Box>
-  );
-};

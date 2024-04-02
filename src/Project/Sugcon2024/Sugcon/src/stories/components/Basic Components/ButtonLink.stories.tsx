@@ -1,20 +1,22 @@
 import { Meta, StoryObj } from '@storybook/react';
-import { CTAButton } from '../../../components/Basic Components/Link';
-import { Default as DefaultLink } from './Link.Default.stories';
+import { ButtonLink } from '../../../components/Basic Components/ButtonLink';
+import { Default as DefaultLink } from './Link.stories';
 
 const meta = {
   title: 'Basic Components/Link',
-  component: CTAButton,
+  component: ButtonLink,
   parameters: {
     layout: 'centered',
   },
   tags: ['autodocs'],
   argTypes: {},
-} satisfies Meta<typeof CTAButton>;
+} satisfies Meta<typeof ButtonLink>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const CTAButtonStory: Story = {
-  name: 'CTA Button',
-  args: DefaultLink.args,
+  name: 'ButtonLink',
+  args: {
+    field: DefaultLink.args.fields.Link
+  }
 };

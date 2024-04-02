@@ -8,7 +8,7 @@ import {
   Item,
 } from '@sitecore-jss/sitecore-jss-nextjs';
 import { Box, Flex, Heading, Icon, Image, Stack } from '@chakra-ui/react';
-import { ButtonLink } from 'src/basics/ButtonLink';
+import { ButtonLink } from 'components/Basic Components/ButtonLink';
 import Slider from 'react-slick';
 import styled from '@emotion/styled';
 import { LayoutFlex } from 'components/Templates/LayoutFlex';

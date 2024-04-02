@@ -9,7 +9,7 @@ import {
   Link as JssLink,
 } from '@sitecore-jss/sitecore-jss-nextjs';
 
-import { ButtonLink } from '../../basics/ButtonLink';
+import { ButtonLink } from './ButtonLink';
 
 import {
   isSitecoreLinkFieldPopulated,
